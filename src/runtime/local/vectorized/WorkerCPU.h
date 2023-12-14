@@ -23,7 +23,6 @@
 
 #include <spdlog/spdlog.h>
 #include <chrono>
-#include <fstream>
 #include <iostream>
 
 class WorkerCPU : public Worker {
@@ -78,7 +77,7 @@ public:
         Task* t = _q[targetQueue]->dequeueTask();
 
         std::ofstream workerLogFile;
-        workerLogFile.open("/tmp/worker.csv");
+        workerLogFile.open("/tmp/worker" + std::to_string(_threadID) + ".csv");
 
         while( !isEOF(t) ) {
             //execute self-contained task
