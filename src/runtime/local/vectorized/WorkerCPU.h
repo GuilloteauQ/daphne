@@ -89,7 +89,7 @@ public:
             auto taskEndTime = std::chrono::high_resolution_clock::now(); 
             // task_id, task_size, worker_id, domain, queue, start_time, end_time
             // workerLogFile << std::format("{},{},{},{},{},{},{}\n", t, t->getTaskSize(), threadID, 0, targetQueue, taskStartTime, taskEndTime);
-            workerLogFile << t << "," << t->getTaskSize() << "," << _threadID << ",0," << targetQueue << "," << taskStartTime.time_since_epoch().count() << "," << taskEndTime.time_since_epoch().count() << "\n";
+            workerLogFile << t << "," << t->getTaskSize() << "," << _threadID << "," << currentDomain << "," << targetQueue << "," << taskStartTime.time_since_epoch().count() << "," << taskEndTime.time_since_epoch().count() << "\n";
             delete t;
 
             //get next tasks (blocking)
@@ -110,7 +110,10 @@ public:
                     if( isEOF(t) ) {
                         targetQueue = (targetQueue+1)%_numQueues;
                     } else {
+                        auto taskStartTime = std::chrono::high_resolution_clock::now(); 
                         t->execute(_fid, _batchSize);
+                        auto taskEndTime = std::chrono::high_resolution_clock::now(); 
+                        workerLogFile << t << "," << t->getTaskSize() << "," << _threadID << "," << currentDomain << "," << targetQueue << "," << taskStartTime.time_since_epoch().count() << "," << taskEndTime.time_since_epoch().count() << "\n";
                         delete t;
                     }
                 }
@@ -125,7 +128,10 @@ public:
                             if( isEOF(t) ) {
                                 targetQueue = (targetQueue+1)%_numQueues;
                             } else {
+                                auto taskStartTime = std::chrono::high_resolution_clock::now(); 
                                 t->execute(_fid, _batchSize);
+                                auto taskEndTime = std::chrono::high_resolution_clock::now(); 
+                                workerLogFile << t << "," << t->getTaskSize() << "," << _threadID << "," << currentDomain << "," << targetQueue << "," << taskStartTime.time_since_epoch().count() << "," << taskEndTime.time_since_epoch().count() << "\n";
                                 delete t;
                             }
                         } else {
@@ -143,7 +149,10 @@ public:
                     if( isEOF(t) ) {
                         targetQueue = (targetQueue+1)%_numQueues;
                     } else {
+                        auto taskStartTime = std::chrono::high_resolution_clock::now(); 
                         t->execute(_fid, _batchSize);
+                        auto taskEndTime = std::chrono::high_resolution_clock::now(); 
+                        workerLogFile << t << "," << t->getTaskSize() << "," << _threadID << "," << currentDomain << "," << targetQueue << "," << taskStartTime.time_since_epoch().count() << "," << taskEndTime.time_since_epoch().count() << "\n";
                         delete t;
                     }
                 }
@@ -159,7 +168,10 @@ public:
                         if( isEOF(t) ) {
                             eofWorkers[targetQueue] = true;
                         } else {
+                            auto taskStartTime = std::chrono::high_resolution_clock::now(); 
                             t->execute(_fid, _batchSize);
+                            auto taskEndTime = std::chrono::high_resolution_clock::now(); 
+                            workerLogFile << t << "," << t->getTaskSize() << "," << _threadID << "," << currentDomain << "," << targetQueue << "," << taskStartTime.time_since_epoch().count() << "," << taskEndTime.time_since_epoch().count() << "\n";
                             delete t;
                         }
                     }
@@ -184,7 +196,10 @@ public:
                                 if( isEOF(t) ) {
                                     eofWorkers[targetQueue] = true;
                                 } else {
+                                    auto taskStartTime = std::chrono::high_resolution_clock::now(); 
                                     t->execute(_fid, _batchSize);
+                                    auto taskEndTime = std::chrono::high_resolution_clock::now(); 
+                                    workerLogFile << t << "," << t->getTaskSize() << "," << _threadID << "," << currentDomain << "," << targetQueue << "," << taskStartTime.time_since_epoch().count() << "," << taskEndTime.time_since_epoch().count() << "\n";
                                     delete t;
                                 }
                             }
@@ -203,7 +218,10 @@ public:
                         if( isEOF(t) ) {
                             eofWorkers[targetQueue] = true;
                         } else {
+                            auto taskStartTime = std::chrono::high_resolution_clock::now(); 
                             t->execute(_fid, _batchSize);
+                            auto taskEndTime = std::chrono::high_resolution_clock::now(); 
+                            workerLogFile << t << "," << t->getTaskSize() << "," << _threadID << "," << currentDomain << "," << targetQueue << "," << taskStartTime.time_since_epoch().count() << "," << taskEndTime.time_since_epoch().count() << "\n";
                             delete t;
                         }
                     }
