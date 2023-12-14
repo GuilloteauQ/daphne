@@ -89,7 +89,7 @@ public:
                 auto taskEndTime = std::chrono::high_resolution_clock::now(); 
                 // task_id, task_size, worker_id, domain, queue, start_time, end_time
                 // workerLogFile << std::format("{},{},{},{},{},{},{}\n", t, t->getTaskSize(), threadID, 0, targetQueue, taskStartTime, taskEndTime);
-                workerLogFile << t << "," << t->getTaskSize() << "," << _threadID << ",0," << targetQueue << "," << taskStartTime.time_since_epoch() << "," << taskEndTime.time_since_epoch() << "\n";
+                workerLogFile << t << "," << t->getTaskSize() << "," << _threadID << ",0," << targetQueue << "," << taskStartTime.time_since_epoch().count() << "," << taskEndTime.time_since_epoch().count() << "\n";
             } else {
               t->execute(_fid, _batchSize);
             }
