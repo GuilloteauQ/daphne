@@ -17,9 +17,14 @@
 #pragma once
 
 #include "Worker.h"
+#include <charconv>
+#include <fstream>
 #include <runtime/local/vectorized/TaskQueues.h>
 
 #include <spdlog/spdlog.h>
+#include <chrono>
+#include <fstream>
+#include <iostream>
 
 class WorkerCPU : public Worker {
     std::vector<TaskQueue*> _q;
@@ -72,15 +77,32 @@ public:
 
         Task* t = _q[targetQueue]->dequeueTask();
 
+        std::chrono::high_resolution_clock taskStartTime;
+        std::chrono::high_resolution_clock taskEndTime;
+
+        std::ofstream workerLogFile;
+        workerLogFile.open("/tmp/worker.csv");
+
         while( !isEOF(t) ) {
             //execute self-contained task
-            if( _verbose )
+            if( _verbose ) {
                 ctx->logger->trace("WorkerCPU: executing task.");
+                taskStartTime = std::chrono::high_resolution_clock::now(); 
+            }
             t->execute(_fid, _batchSize);
+            if( _verbose ) {
+                taskEndTime = std::chrono::high_resolution_clock::now(); 
+                // task_id, task_size, worker_id, domain, queue, start_time, end_time
+                // workerLogFile << std::format("{},{},{},{},{},{},{}\n", t, t->getTaskSize(), threadID, 0, targetQueue, taskStartTime, taskEndTime);
+                workerLogFile << t << "," << t->getTaskSize() << "," << _threadID << ",0," << targetQueue << "," << taskStartTime.time_since_epoch() << "," << taskEndTime.time_since_epoch() << "\n";
+                
+            }
             delete t;
+
             //get next tasks (blocking)
             t = _q[targetQueue]->dequeueTask();
         }
+        workerLogFile.close();
 
         // All tasks from own queue have completed. Now stealing from other queues.
 
