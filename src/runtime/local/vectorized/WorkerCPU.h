@@ -77,9 +77,6 @@ public:
 
         Task* t = _q[targetQueue]->dequeueTask();
 
-        std::chrono::high_resolution_clock taskStartTime;
-        std::chrono::high_resolution_clock taskEndTime;
-
         std::ofstream workerLogFile;
         workerLogFile.open("/tmp/worker.csv");
 
@@ -87,15 +84,14 @@ public:
             //execute self-contained task
             if( _verbose ) {
                 ctx->logger->trace("WorkerCPU: executing task.");
-                taskStartTime = std::chrono::high_resolution_clock::now(); 
-            }
-            t->execute(_fid, _batchSize);
-            if( _verbose ) {
-                taskEndTime = std::chrono::high_resolution_clock::now(); 
+                auto taskStartTime = std::chrono::high_resolution_clock::now(); 
+                t->execute(_fid, _batchSize);
+                auto taskEndTime = std::chrono::high_resolution_clock::now(); 
                 // task_id, task_size, worker_id, domain, queue, start_time, end_time
                 // workerLogFile << std::format("{},{},{},{},{},{},{}\n", t, t->getTaskSize(), threadID, 0, targetQueue, taskStartTime, taskEndTime);
                 workerLogFile << t << "," << t->getTaskSize() << "," << _threadID << ",0," << targetQueue << "," << taskStartTime.time_since_epoch() << "," << taskEndTime.time_since_epoch() << "\n";
-                
+            } else {
+              t->execute(_fid, _batchSize);
             }
             delete t;
 
