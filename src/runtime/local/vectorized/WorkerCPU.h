@@ -95,7 +95,6 @@ public:
             //get next tasks (blocking)
             t = _q[targetQueue]->dequeueTask();
         }
-        workerLogFile.close();
 
         // All tasks from own queue have completed. Now stealing from other queues.
 
@@ -228,6 +227,8 @@ public:
                 }
             }
         }
+
+        workerLogFile.close();
 
         // No more tasks available anywhere
         if( _verbose )
