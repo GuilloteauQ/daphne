@@ -84,15 +84,13 @@ public:
             //execute self-contained task
             if( _verbose ) {
                 ctx->logger->trace("WorkerCPU: executing task.");
-                auto taskStartTime = std::chrono::high_resolution_clock::now(); 
-                t->execute(_fid, _batchSize);
-                auto taskEndTime = std::chrono::high_resolution_clock::now(); 
-                // task_id, task_size, worker_id, domain, queue, start_time, end_time
-                // workerLogFile << std::format("{},{},{},{},{},{},{}\n", t, t->getTaskSize(), threadID, 0, targetQueue, taskStartTime, taskEndTime);
-                workerLogFile << t << "," << t->getTaskSize() << "," << _threadID << ",0," << targetQueue << "," << taskStartTime.time_since_epoch().count() << "," << taskEndTime.time_since_epoch().count() << "\n";
-            } else {
-              t->execute(_fid, _batchSize);
             }
+            auto taskStartTime = std::chrono::high_resolution_clock::now(); 
+            t->execute(_fid, _batchSize);
+            auto taskEndTime = std::chrono::high_resolution_clock::now(); 
+            // task_id, task_size, worker_id, domain, queue, start_time, end_time
+            // workerLogFile << std::format("{},{},{},{},{},{},{}\n", t, t->getTaskSize(), threadID, 0, targetQueue, taskStartTime, taskEndTime);
+            workerLogFile << t << "," << t->getTaskSize() << "," << _threadID << ",0," << targetQueue << "," << taskStartTime.time_since_epoch().count() << "," << taskEndTime.time_since_epoch().count() << "\n";
             delete t;
 
             //get next tasks (blocking)
