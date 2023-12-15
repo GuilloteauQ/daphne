@@ -24,6 +24,7 @@
 #include <spdlog/spdlog.h>
 #include <chrono>
 #include <iostream>
+#include <sstream>
 #include <unistd.h>
 
 #define MAX_HOSTNAME_SIZE 128
@@ -88,7 +89,10 @@ public:
         Task* t = _q[targetQueue]->dequeueTask();
 
         std::ofstream workerLogFile;
-        workerLogFile.open("/tmp/worker_domain_" + std::to_string(currentDomain) + "_threadid_" + std::to_string(_threadID) + "_" + this + ".csv", std::ios_base::app);
+        const void * address = static_cast<const void*>(this);
+        std::stringstream ss;
+        ss << address;  
+        workerLogFile.open("/tmp/worker_domain_" + std::to_string(currentDomain) + "_threadid_" + std::to_string(_threadID) + "_" + ss.str() + ".csv", std::ios_base::app);
 
         while( !isEOF(t) ) {
             //execute self-contained task
