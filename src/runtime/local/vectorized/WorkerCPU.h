@@ -25,6 +25,7 @@
 #include <chrono>
 #include <iostream>
 #include <sstream>
+#include <string>
 #include <unistd.h>
 
 #define MAX_HOSTNAME_SIZE 128
@@ -32,7 +33,7 @@
   auto taskStartTime = std::chrono::high_resolution_clock::now();\
   x \
   auto taskEndTime = std::chrono::high_resolution_clock::now();\
-  workerLogFile << t << "," << t->getTaskSize() << "," << _threadID << "," << currentDomain << "," << hostname << "," << targetQueue << "," << taskStartTime.time_since_epoch().count() << "," << taskEndTime.time_since_epoch().count() << "\n";\
+  workerLogFile << t << "," << t->getTaskSize() << "," << _threadID << "," << currentDomain << "," << hostname << "," << targetQueue << "," << taskStartTime.time_since_epoch().count() << "," << taskEndTime.time_since_epoch().count() << "," << randomID << "\n";\
 }
 
 class WorkerCPU : public Worker {
@@ -92,7 +93,8 @@ public:
         const void * address = static_cast<const void*>(this);
         std::stringstream ss;
         ss << address;  
-        workerLogFile.open("/tmp/worker_domain_" + std::to_string(currentDomain) + "_threadid_" + std::to_string(_threadID) + "_" + ss.str() + "_" + std::to_string(rand()) + ".csv", std::ios_base::app);
+        int randomID = rand();
+        workerLogFile.open("/tmp/worker_domain_" + std::to_string(currentDomain) + "_threadid_" + std::to_string(_threadID) + "_" + ss.str() + "_" + std::to_string(randomID) + ".csv", std::ios_base::app);
 
         while( !isEOF(t) ) {
             //execute self-contained task
