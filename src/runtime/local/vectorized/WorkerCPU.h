@@ -88,7 +88,7 @@ public:
         Task* t = _q[targetQueue]->dequeueTask();
 
         std::ofstream workerLogFile;
-        workerLogFile.open("/tmp/worker" + std::to_string(_threadID) + ".csv");
+        workerLogFile.open("/tmp/worker_domain_" + std::to_string(currentDomain) + "_threadid_" + std::to_string(_threadID) + "_" + this + ".csv", std::ios_base::app);
 
         while( !isEOF(t) ) {
             //execute self-contained task
