@@ -92,7 +92,7 @@ public:
         const void * address = static_cast<const void*>(this);
         std::stringstream ss;
         ss << address;  
-        workerLogFile.open("/tmp/worker_domain_" + std::to_string(currentDomain) + "_threadid_" + std::to_string(_threadID) + "_" + ss.str() + ".csv", std::ios_base::app);
+        workerLogFile.open("/tmp/worker_domain_" + std::to_string(currentDomain) + "_threadid_" + std::to_string(_threadID) + "_" + ss.str() + "_" + rand() + ".csv", std::ios_base::app);
 
         while( !isEOF(t) ) {
             //execute self-contained task
