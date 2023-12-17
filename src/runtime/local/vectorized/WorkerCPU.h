@@ -103,6 +103,7 @@ public:
 #ifdef SCHEDULE_VISUALIZATION
         char hostname[MAX_HOSTNAME_SIZE];
         gethostname(hostname, MAX_HOSTNAME_SIZE);
+        std::ofstream workerLogFile;
         workerLogFile.open(SCHEDULE_VISUALIZATION_PREFIX + std::to_string(currentDomain) + "_threadid_" + std::to_string(_threadID) + ".csv", std::ios_base::app);
 #endif
 
