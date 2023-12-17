@@ -28,13 +28,26 @@
 #include <string>
 #include <unistd.h>
 
+// TODO add this into a cmake file
+#define SCHEDULE_VISUALIZATION 1
+
+#if defined(SCHEDULE_VISUALIZATION)
 #define MAX_HOSTNAME_SIZE 128
 #define LOG_VIZ(x) {\
   auto taskStartTime = std::chrono::high_resolution_clock::now();\
   x \
   auto taskEndTime = std::chrono::high_resolution_clock::now();\
-  workerLogFile << t << "," << t->getTaskSize() << "," << _threadID << "," << currentDomain << "," << hostname << "," << targetQueue << "," << taskStartTime.time_since_epoch().count() << "," << taskEndTime.time_since_epoch().count() << "," << randomID << "\n";\
+  workerLogFile << t << "," << t->getTaskSize() << "," << _threadID << "," << currentDomain << "," << hostname << "," << targetQueue << "," << taskStartTime.time_since_epoch().count() << "," << taskEndTime.time_since_epoch().count() << "\n";\
 }
+
+#ifndef SCHEDULE_VISUALIZATION_PREFIX
+#define SCHEDULE_VISUALIZATION_PREFIX "/tmp/worker_domain_"
+#endif 
+
+#else
+#define LOG_VIZ(x) x
+#endif
+
 
 class WorkerCPU : public Worker {
     std::vector<TaskQueue*> _q;
@@ -74,8 +87,6 @@ public:
 
         int currentDomain = _physical_ids[_threadID];
         int targetQueue = _threadID;
-        char hostname[MAX_HOSTNAME_SIZE];
-        gethostname(hostname, MAX_HOSTNAME_SIZE);
         if( _queueMode == 0 ) {
             targetQueue = 0;
         } else if ( _queueMode == 1) {
@@ -89,12 +100,11 @@ public:
 
         Task* t = _q[targetQueue]->dequeueTask();
 
-        std::ofstream workerLogFile;
-        const void * address = static_cast<const void*>(this);
-        std::stringstream ss;
-        ss << address;  
-        int randomID = rand();
-        workerLogFile.open("/tmp/worker_domain_" + std::to_string(currentDomain) + "_threadid_" + std::to_string(_threadID) + "_" + ss.str() + "_" + std::to_string(randomID) + ".csv", std::ios_base::app);
+#ifdef SCHEDULE_VISUALIZATION
+        char hostname[MAX_HOSTNAME_SIZE];
+        gethostname(hostname, MAX_HOSTNAME_SIZE);
+        workerLogFile.open(SCHEDULE_VISUALIZATION_PREFIX + std::to_string(currentDomain) + "_threadid_" + std::to_string(_threadID) + ".csv", std::ios_base::app);
+#endif
 
         while( !isEOF(t) ) {
             //execute self-contained task
@@ -221,7 +231,9 @@ public:
             }
         }
 
+#ifdef SCHEDULE_VISUALIZATION
         workerLogFile.close();
+#endif
 
         // No more tasks available anywhere
         if( _verbose )
