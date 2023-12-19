@@ -118,6 +118,8 @@ public:
             t = _q[targetQueue]->dequeueTask();
         }
 
+        LOG_VIZ()
+
         // All tasks from own queue have completed. Now stealing from other queues.
 
         if( _numQueues > 1 ) {
