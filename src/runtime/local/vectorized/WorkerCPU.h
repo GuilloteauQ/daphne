@@ -45,7 +45,7 @@ typedef struct {
 #define MAX_HOSTNAME_SIZE 128
 #define LOG_VIZ(x) {\
   auto taskStartTime = std::chrono::high_resolution_clock::now();\
-  x \
+  x; \
   auto taskEndTime = std::chrono::high_resolution_clock::now();\
   taskInfos.push_back({taskStartTime, taskEndTime, t->getTaskSize(), targetQueue});\
 }
@@ -110,7 +110,6 @@ public:
 
         Task* t = _q[targetQueue]->dequeueTask();
 
-
         std::vector<TaskInfo> taskInfos;
 
         while( !isEOF(t) ) {
@@ -118,13 +117,13 @@ public:
             if( _verbose ) {
                 ctx->logger->trace("WorkerCPU: executing task.");
             }
-            LOG_VIZ(t->execute(_fid, _batchSize);)
+            LOG_VIZ(t->execute(_fid, _batchSize));
             delete t;
             //get next tasks (blocking)
             t = _q[targetQueue]->dequeueTask();
         }
 
-        LOG_VIZ()
+        LOG_VIZ();
 
         // All tasks from own queue have completed. Now stealing from other queues.
 
@@ -139,7 +138,7 @@ public:
                     if( isEOF(t) ) {
                         targetQueue = (targetQueue+1)%_numQueues;
                     } else {
-                        LOG_VIZ(t->execute(_fid, _batchSize);)
+                        LOG_VIZ(t->execute(_fid, _batchSize));
                         delete t;
                     }
                 }
@@ -154,7 +153,7 @@ public:
                             if( isEOF(t) ) {
                                 targetQueue = (targetQueue+1)%_numQueues;
                             } else {
-                                LOG_VIZ(t->execute(_fid, _batchSize);)
+                                LOG_VIZ(t->execute(_fid, _batchSize));
                                 delete t;
                             }
                         } else {
@@ -172,7 +171,7 @@ public:
                     if( isEOF(t) ) {
                         targetQueue = (targetQueue+1)%_numQueues;
                     } else {
-                        LOG_VIZ(t->execute(_fid, _batchSize);)
+                        LOG_VIZ(t->execute(_fid, _batchSize));
                         delete t;
                     }
                 }
@@ -188,7 +187,7 @@ public:
                         if( isEOF(t) ) {
                             eofWorkers[targetQueue] = true;
                         } else {
-                            LOG_VIZ(t->execute(_fid, _batchSize);)
+                            LOG_VIZ(t->execute(_fid, _batchSize));
                             delete t;
                         }
                     }
@@ -213,7 +212,7 @@ public:
                                 if( isEOF(t) ) {
                                     eofWorkers[targetQueue] = true;
                                 } else {
-                                    LOG_VIZ(t->execute(_fid, _batchSize);)
+                                    LOG_VIZ(t->execute(_fid, _batchSize));
                                     delete t;
                                 }
                             }
@@ -232,7 +231,7 @@ public:
                         if( isEOF(t) ) {
                             eofWorkers[targetQueue] = true;
                         } else {
-                            LOG_VIZ(t->execute(_fid, _batchSize);)
+                            LOG_VIZ(t->execute(_fid, _batchSize));
                             delete t;
                         }
                     }
