@@ -27,17 +27,27 @@
 #include <sstream>
 #include <string>
 #include <unistd.h>
+#include <vector>
 
 // TODO add this into a cmake file
 #define SCHEDULE_VISUALIZATION 1
 
+typedef struct {
+  std::chrono::high_resolution_clock startTime;
+  std::chrono::high_resolution_clock endTime;
+  uint64_t taskSize;
+  int fromQueue;
+} TaskInfo;
+
+
 #if defined(SCHEDULE_VISUALIZATION)
+
 #define MAX_HOSTNAME_SIZE 128
 #define LOG_VIZ(x) {\
   auto taskStartTime = std::chrono::high_resolution_clock::now();\
   x \
   auto taskEndTime = std::chrono::high_resolution_clock::now();\
-  workerLogFile << t << "," << t->getTaskSize() << "," << _threadID << "," << currentDomain << "," << hostname << "," << targetQueue << "," << taskStartTime.time_since_epoch().count() << "," << taskEndTime.time_since_epoch().count() << "\n";\
+  taskInfos.push_back({taskStartTime, taskEndTime, t->getTaskSize(), targetQueue});\
 }
 
 #ifndef SCHEDULE_VISUALIZATION_PREFIX
@@ -100,12 +110,8 @@ public:
 
         Task* t = _q[targetQueue]->dequeueTask();
 
-#ifdef SCHEDULE_VISUALIZATION
-        char hostname[MAX_HOSTNAME_SIZE];
-        gethostname(hostname, MAX_HOSTNAME_SIZE);
-        std::ofstream workerLogFile;
-        workerLogFile.open(SCHEDULE_VISUALIZATION_PREFIX + std::to_string(currentDomain) + "_threadid_" + std::to_string(_threadID) + ".csv", std::ios_base::app);
-#endif
+
+        std::vector<TaskInfo> taskInfos;
 
         while( !isEOF(t) ) {
             //execute self-contained task
@@ -235,6 +241,13 @@ public:
         }
 
 #ifdef SCHEDULE_VISUALIZATION
+        char hostname[MAX_HOSTNAME_SIZE];
+        gethostname(hostname, MAX_HOSTNAME_SIZE);
+        std::ofstream workerLogFile;
+        workerLogFile.open(SCHEDULE_VISUALIZATION_PREFIX + std::to_string(currentDomain) + "_threadid_" + std::to_string(_threadID) + ".csv", std::ios_base::app);
+        for (auto taskInfo : taskInfos) {
+          workerLogFile << taskInfo.taskSize << "," << _threadID << "," << currentDomain << "," << hostname << "," << taskInfo.fromQueue << "," << taskInfo.startTime.time_since_epoch().count() << "," << taskInfo.endTime.time_since_epoch().count() << "\n";
+        }
         workerLogFile.close();
 #endif
 
