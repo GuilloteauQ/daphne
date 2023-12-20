@@ -47,7 +47,7 @@ typedef struct {
   auto taskStartTime = std::chrono::high_resolution_clock::now();\
   x; \
   auto taskEndTime = std::chrono::high_resolution_clock::now();\
-  taskInfos.push_back({taskStartTime, taskEndTime, t->getTaskSize(), targetQueue});\
+  taskInfos.push_back((taskInfo){taskStartTime, taskEndTime, t->getTaskSize(), targetQueue});\
 }
 
 #ifndef SCHEDULE_VISUALIZATION_PREFIX
