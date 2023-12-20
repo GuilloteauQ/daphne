@@ -33,8 +33,8 @@
 #define SCHEDULE_VISUALIZATION 1
 
 typedef struct {
-  std::chrono::high_resolution_clock startTime;
-  std::chrono::high_resolution_clock endTime;
+  long long startTime;
+  long long endTime;
   uint64_t taskSize;
   int fromQueue;
 } TaskInfo;
@@ -47,7 +47,7 @@ typedef struct {
   auto taskStartTime = std::chrono::high_resolution_clock::now();\
   x; \
   auto taskEndTime = std::chrono::high_resolution_clock::now();\
-  taskInfos.push_back((TaskInfo){taskStartTime, taskEndTime, t->getTaskSize(), targetQueue});\
+  taskInfos.push_back((TaskInfo){taskStartTime.time_since_epoch().count(), taskEndTime.time_since_epoch().count(), t->getTaskSize(), targetQueue});\
 }
 
 #ifndef SCHEDULE_VISUALIZATION_PREFIX
@@ -245,7 +245,7 @@ public:
         std::ofstream workerLogFile;
         workerLogFile.open(SCHEDULE_VISUALIZATION_PREFIX + std::to_string(currentDomain) + "_threadid_" + std::to_string(_threadID) + ".csv", std::ios_base::app);
         for (auto taskInfo : taskInfos) {
-          workerLogFile << taskInfo.taskSize << "," << _threadID << "," << currentDomain << "," << hostname << "," << taskInfo.fromQueue << "," << taskInfo.startTime.time_since_epoch().count() << "," << taskInfo.endTime.time_since_epoch().count() << "\n";
+          workerLogFile << taskInfo.taskSize << "," << _threadID << "," << currentDomain << "," << hostname << "," << taskInfo.fromQueue << "," << taskInfo.startTime << "," << taskInfo.endTime << "\n";
         }
         workerLogFile.close();
 #endif
