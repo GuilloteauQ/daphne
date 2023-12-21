@@ -29,9 +29,6 @@
 #include <unistd.h>
 #include <vector>
 
-// TODO add this into a cmake file
-#define SCHEDULE_VISUALIZATION 1
-
 typedef struct {
   long long startTime;
   long long endTime;
@@ -40,23 +37,21 @@ typedef struct {
 } TaskInfo;
 
 
-#if defined(SCHEDULE_VISUALIZATION)
-
 #define MAX_HOSTNAME_SIZE 128
 #define LOG_VIZ(x) {\
+  if (logTaskForVisualization) {\
   auto taskStartTime = std::chrono::high_resolution_clock::now();\
   x; \
   auto taskEndTime = std::chrono::high_resolution_clock::now();\
   taskInfos.push_back((TaskInfo){taskStartTime.time_since_epoch().count(), taskEndTime.time_since_epoch().count(), t->getTaskSize(), targetQueue});\
+  } else {\
+    x;\
+  }\
 }
 
 #ifndef SCHEDULE_VISUALIZATION_PREFIX
 #define SCHEDULE_VISUALIZATION_PREFIX "/tmp/worker_domain_"
 #endif 
-
-#else
-#define LOG_VIZ(x) x
-#endif
 
 
 class WorkerCPU : public Worker {
@@ -110,6 +105,10 @@ public:
 
         Task* t = _q[targetQueue]->dequeueTask();
 
+        bool logTaskForVisualization = false;
+        if(const char* envLog = std::getenv("DAPHNE_LOG_TASKS")){
+          logTaskForVisualization = (std::stoi(envLog) == 1);
+        }
         std::vector<TaskInfo> taskInfos;
 
         while( !isEOF(t) ) {
@@ -239,19 +238,19 @@ public:
             }
         }
 
-#ifdef SCHEDULE_VISUALIZATION
-        char hostname[MAX_HOSTNAME_SIZE];
-        gethostname(hostname, MAX_HOSTNAME_SIZE);
-        std::ofstream workerLogFile;
-        auto taskStartTime = std::chrono::high_resolution_clock::now();
-        workerLogFile.open(SCHEDULE_VISUALIZATION_PREFIX + std::to_string(currentDomain) + "_threadid_" + std::to_string(_threadID) + ".csv", std::ios_base::app);
-        for (auto taskInfo : taskInfos) {
-          workerLogFile << taskInfo.taskSize << "," << _threadID << "," << currentDomain << "," << hostname << "," << taskInfo.fromQueue << "," << taskInfo.startTime << "," << taskInfo.endTime << "\n";
+        if (logTaskForVisualization) {
+          char hostname[MAX_HOSTNAME_SIZE];
+          gethostname(hostname, MAX_HOSTNAME_SIZE);
+          std::ofstream workerLogFile;
+          auto taskStartTime = std::chrono::high_resolution_clock::now();
+          workerLogFile.open(SCHEDULE_VISUALIZATION_PREFIX + std::to_string(currentDomain) + "_threadid_" + std::to_string(_threadID) + ".csv", std::ios_base::app);
+          for (auto taskInfo : taskInfos) {
+            workerLogFile << taskInfo.taskSize << "," << _threadID << "," << currentDomain << "," << hostname << "," << taskInfo.fromQueue << "," << taskInfo.startTime << "," << taskInfo.endTime << "\n";
+          }
+          auto taskEndTime = std::chrono::high_resolution_clock::now();
+          workerLogFile << -1 << "," << _threadID << "," << currentDomain << "," << hostname << "," << -1 << "," << taskStartTime.time_since_epoch().count() << "," << taskEndTime.time_since_epoch().count() << "\n";
+          workerLogFile.close();
         }
-        auto taskEndTime = std::chrono::high_resolution_clock::now();
-        workerLogFile << -1 << "," << _threadID << "," << currentDomain << "," << hostname << "," << -1 << "," << taskStartTime.time_since_epoch().count() << "," << taskEndTime.time_since_epoch().count() << "\n";
-        workerLogFile.close();
-#endif
 
         // No more tasks available anywhere
         if( _verbose )
