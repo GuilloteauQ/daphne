@@ -249,7 +249,7 @@ public:
           workerLogFile << taskInfo.taskSize << "," << _threadID << "," << currentDomain << "," << hostname << "," << taskInfo.fromQueue << "," << taskInfo.startTime << "," << taskInfo.endTime << "\n";
         }
         auto taskEndTime = std::chrono::high_resolution_clock::now();
-        workerLogFile << -1 << "," << _threadID << "," << currentDomain << "," << hostname << "," << -1 << "," << taskStartTime << "," << taskEndTime << "\n";
+        workerLogFile << -1 << "," << _threadID << "," << currentDomain << "," << hostname << "," << -1 << "," << taskStartTime.time_since_epoch().count() << "," << taskEndTime.time_since_epoch().count() << "\n";
         workerLogFile.close();
 #endif
 
