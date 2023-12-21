@@ -243,10 +243,13 @@ public:
         char hostname[MAX_HOSTNAME_SIZE];
         gethostname(hostname, MAX_HOSTNAME_SIZE);
         std::ofstream workerLogFile;
+        auto taskStartTime = std::chrono::high_resolution_clock::now();
         workerLogFile.open(SCHEDULE_VISUALIZATION_PREFIX + std::to_string(currentDomain) + "_threadid_" + std::to_string(_threadID) + ".csv", std::ios_base::app);
         for (auto taskInfo : taskInfos) {
           workerLogFile << taskInfo.taskSize << "," << _threadID << "," << currentDomain << "," << hostname << "," << taskInfo.fromQueue << "," << taskInfo.startTime << "," << taskInfo.endTime << "\n";
         }
+        auto taskEndTime = std::chrono::high_resolution_clock::now();
+        workerLogFile << -1 << "," << _threadID << "," << currentDomain << "," << hostname << "," << -1 << "," << taskStartTime << "," << taskEndTime << "\n";
         workerLogFile.close();
 #endif
 
