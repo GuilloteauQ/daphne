@@ -2114,7 +2114,8 @@
                 "instantiations": [
                     [["DenseMatrix", "int32_t"], ["DenseMatrix", "int32_t"], ["DenseMatrix", "int32_t"]],
                     [["DenseMatrix", "int64_t"], ["DenseMatrix", "int64_t"], ["DenseMatrix", "int64_t"]],
-                    [["DenseMatrix", "double"], ["CSRMatrix", "double"], ["DenseMatrix", "double"]]
+                    [["DenseMatrix", "double"], ["CSRMatrix", "double"], ["DenseMatrix", "double"]],
+                    [["CSRMatrix", "double"], ["CSRMatrix", "double"], ["CSRMatrix", "double"]]
                 ]
             },
              {
