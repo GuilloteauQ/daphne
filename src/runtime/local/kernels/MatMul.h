@@ -129,3 +129,34 @@ struct MatMul<Matrix<VT>, Matrix<VT>, Matrix<VT>> {
         res->finishAppend();
     }
 };
+
+// ----------------------------------------------------------------------------
+// CSRMatrix <- CSRMatrix, CSRMatrix
+// ----------------------------------------------------------------------------
+
+template<typename VT>
+struct MatMul<CSRMatrix<VT>, CSRMatrix<VT>, CSRMatrix<VT>> {
+    static void apply(CSRMatrix<VT> *& res, const CSRMatrix<VT> * lhs, const CSRMatrix<VT> * rhs, bool transa, bool transb, DCTX(ctx)) {
+        // 1. check the size of the matrices
+        const size_t nr1 = lhs->getNumRows();
+        [[maybe_unused]] const size_t nc1 = lhs->getNumCols();
+
+        [[maybe_unused]] const size_t nr2 = rhs->getNumRows();
+        const size_t nc2 = rhs->getNumCols();
+
+        size_t estimationNumNonZeros = lhs->getNumNonZeros() * rhs->getNumNonZeros();
+        if(res == nullptr)
+            res = DataObjectFactory::create<CSRMatrix<VT>>(nr1, nc2, estimationNumNonZeros, false);
+
+        assert(nc1 == nr2 && "#cols of lhs and #rows of rhs must be the same");
+
+	for (size_t i = 0; i < nr1; i++) {
+	  for (size_t j = 0; j < nc2; j++) {
+	    VT tmp = VT(0);
+	    for (size_t k = 0; k < nc1; k++) {
+	      tmp += lhs->get(i, k) * rhs->get(k, j);
+	    }
+	    res->set(i, j) = tmp;
+	  }
+	}
+};
