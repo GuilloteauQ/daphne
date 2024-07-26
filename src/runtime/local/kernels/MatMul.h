@@ -129,3 +129,84 @@ struct MatMul<Matrix<VT>, Matrix<VT>, Matrix<VT>> {
         res->finishAppend();
     }
 };
+
+// ----------------------------------------------------------------------------
+// CSRMatrix <- CSRMatrix, CSRMatrix
+// ----------------------------------------------------------------------------
+
+template<typename VT>
+struct MatMul<CSRMatrix<VT>, CSRMatrix<VT>, CSRMatrix<VT>> {
+    static void apply(CSRMatrix<VT> *& res, const CSRMatrix<VT> * lhs, const CSRMatrix<VT> * rhs, bool transa, bool transb, DCTX(ctx)) {
+      // 1. check the size of the matrices
+      const size_t nr1 = lhs->getNumRows();
+      [[maybe_unused]] const size_t nc1 = lhs->getNumCols();
+
+      [[maybe_unused]] const size_t nr2 = rhs->getNumRows();
+      const size_t nc2 = rhs->getNumCols();
+
+      size_t estimationNumNonZeros = lhs->getNumNonZeros() * rhs->getNumNonZeros();
+      if(res == nullptr)
+        res = DataObjectFactory::create<CSRMatrix<VT>>(nr1, nc2, estimationNumNonZeros, true);
+
+      assert(nc1 == nr2 && "#cols of lhs and #rows of rhs must be the same");
+
+      // 2. Transpose rhs
+      const size_t numRows = rhs->getNumRows();
+      const size_t numCols = rhs->getNumCols();
+
+      CSRMatrix<VT>* rhsT = DataObjectFactory::create<CSRMatrix<VT>>(numCols, numRows, rhs->getNumNonZeros(), false);
+
+      const VT * valuesArg = rhs->getValues();
+      const size_t * colIdxsArg = rhs->getColIdxs();
+      const size_t * rowOffsetsArg = rhs->getRowOffsets();
+
+      VT * valuesRes = rhsT->getValues();
+      VT * const valuesResInit = valuesRes;
+      size_t * colIdxsRes = rhsT->getColIdxs();
+      size_t * rowOffsetsRes = rhsT->getRowOffsets();
+
+      auto* curRowOffsets = new size_t[numRows + 1];
+      memcpy(curRowOffsets, rowOffsetsArg, (numRows + 1) * sizeof(size_t));
+
+      rowOffsetsRes[0] = 0;
+      for(size_t c = 0; c < numCols; c++) {
+        for(size_t r = 0; r < numRows; r++)
+          if(curRowOffsets[r] < rowOffsetsArg[r + 1] && colIdxsArg[curRowOffsets[r]] == c) {
+            *valuesRes++ = valuesArg[curRowOffsets[r]];
+            *colIdxsRes++ = r;
+            curRowOffsets[r]++;
+          }
+        rowOffsetsRes[c + 1] = valuesRes - valuesResInit;
+      }
+
+      delete[] curRowOffsets;
+
+      // 3. Compute Matrix Multiplication
+      const VT * valuesLhs = lhs->getValues();
+      const size_t * colIdxsLhs = lhs->getColIdxs();
+      const size_t * rowOffsetsLhs = lhs->getRowOffsets();
+
+      const VT * valuesRhs = rhsT->getValues();
+      const size_t * colIdxsRhs = rhsT->getColIdxs();
+      const size_t * rowOffsetsRhs = rhsT->getRowOffsets();
+
+      for (size_t row = 0; row < nr1; row++) {
+        size_t i = rowOffsetsLhs[row];
+        for (size_t col = 0; col < nc2; col++) {
+          size_t j = rowOffsetsRhs[col];
+          VT sum = VT(0);
+          while (i < rowOffsetsLhs[row + 1] and j < rowOffsetsRhs[col + 1]) {
+            if (colIdxsLhs[i] == colIdxsRhs[j]) {
+              sum += valuesLhs[i] * valuesRhs[j];
+              i++; j++;
+            } else if (colIdxsLhs[i] < colIdxsRhs[j]) {
+              i++;
+            } else {
+              j++;
+            }
+          }
+          res->set(row, col, sum);
+        }
+      }
+  }
+};
