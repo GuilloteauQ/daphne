@@ -191,11 +191,11 @@ struct MatMul<CSRMatrix<VT>, CSRMatrix<VT>, CSRMatrix<VT>> {
       const size_t * rowOffsetsRhs = rhsT->getRowOffsets();
 
       for (size_t row = 0; row < nr1; row++) {
-        size_t i = rowOffsetsLhs[row];
         for (size_t col = 0; col < nc2; col++) {
+          size_t i = rowOffsetsLhs[row];
           size_t j = rowOffsetsRhs[col];
           VT sum = VT(0);
-          while (i < rowOffsetsLhs[row + 1] and j < rowOffsetsRhs[col + 1]) {
+          while (i < rowOffsetsLhs[row + 1] && j < rowOffsetsRhs[col + 1]) {
             if (colIdxsLhs[i] == colIdxsRhs[j]) {
               sum += valuesLhs[i] * valuesRhs[j];
               i++; j++;
