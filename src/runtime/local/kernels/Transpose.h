@@ -91,32 +91,34 @@ struct Transpose<CSRMatrix<VT>, CSRMatrix<VT>> {
         const size_t numCols = arg->getNumCols();
         
         if(res == nullptr)
-            res = DataObjectFactory::create<CSRMatrix<VT>>(numCols, numRows, arg->getNumNonZeros(), false);
+            res = DataObjectFactory::create<CSRMatrix<VT>>(numCols, numRows, arg->getNumNonZeros(), true);
         
         const VT * valuesArg = arg->getValues();
         const size_t * colIdxsArg = arg->getColIdxs();
         const size_t * rowOffsetsArg = arg->getRowOffsets();
+
+        const size_t numNonZeros = arg->getNumNonZeros();
         
         VT * valuesRes = res->getValues();
         VT * const valuesResInit = valuesRes;
         size_t * colIdxsRes = res->getColIdxs();
         size_t * rowOffsetsRes = res->getRowOffsets();
-        
-        auto* curRowOffsets = new size_t[numRows + 1];
-        memcpy(curRowOffsets, rowOffsetsArg, (numRows + 1) * sizeof(size_t));
-        
-        rowOffsetsRes[0] = 0;
-        for(size_t c = 0; c < numCols; c++) {
-            for(size_t r = 0; r < numRows; r++)
-                if(curRowOffsets[r] < rowOffsetsArg[r + 1] && colIdxsArg[curRowOffsets[r]] == c) {
-                    *valuesRes++ = valuesArg[curRowOffsets[r]];
-                    *colIdxsRes++ = r;
-                    curRowOffsets[r]++;
-                }
-            rowOffsetsRes[c + 1] = valuesRes - valuesResInit;
+
+        for (size_t i = 0; i < numNonZeros; i++) {
+          rowOffsetsRes[colIdxsArg[i] + 1]++;
         }
-        
-        delete[] curRowOffsets;
+
+        for (size_t i = 1; i < rowOffsetsRes.size(); i++) {
+          rowOffsetsRes[i] += rowOffsetsRes[i - 1];
+        }
+
+        for (size_t i = 0; i < numNonZeros; i++) {
+          for (size_t j = rowOffsetsArg[i]; j < rowOffsetsArg[i + 1]; j++) {
+            const size_t newIndex = rowOffsetsRes[colIdxsArg[j]]++;
+            valuesRes[newIndex] = valuesArg[j];
+            colIdxsRes[newIndex] = i;
+          }
+        }
     }
 };
 
