@@ -160,26 +160,72 @@ struct MatMul<CSRMatrix<VT>, CSRMatrix<VT>, CSRMatrix<VT>> {
       const size_t * colIdxsArg = rhs->getColIdxs();
       const size_t * rowOffsetsArg = rhs->getRowOffsets();
 
-      VT * valuesRes = rhsT->getValues();
-      VT * const valuesResInit = valuesRes;
-      size_t * colIdxsRes = rhsT->getColIdxs();
-      size_t * rowOffsetsRes = rhsT->getRowOffsets();
+      const size_t numNonZeros = rhs->getNumNonZeros();
 
-      auto* curRowOffsets = new size_t[numRows + 1];
-      memcpy(curRowOffsets, rowOffsetsArg, (numRows + 1) * sizeof(size_t));
+      VT * valuesRhsT = rhsT->getValues();
+      size_t * colIdxsRhsT = rhsT->getColIdxs();
+      size_t * rowOffsetsRhsT = rhsT->getRowOffsets();
 
-      rowOffsetsRes[0] = 0;
-      for(size_t c = 0; c < numCols; c++) {
-        for(size_t r = 0; r < numRows; r++)
-          if(curRowOffsets[r] < rowOffsetsArg[r + 1] && colIdxsArg[curRowOffsets[r]] == c) {
-            *valuesRes++ = valuesArg[curRowOffsets[r]];
-            *colIdxsRes++ = r;
-            curRowOffsets[r]++;
-          }
-        rowOffsetsRes[c + 1] = valuesRes - valuesResInit;
+      // Maybe use memset instead?
+      // memset(rowOffsetsRhsT, 0, sizeof(size_t) * (numCols + 1));
+      for (size_t i = 0; i < numCols + 1; i++)
+        rowOffsetsRhsT[i] = 0;
+
+      for (size_t row = 0; row < numRows; row++)
+        for (size_t j = rowOffsetsArg[row]; j < rowOffsetsArg[row + 1]; j++)
+          rowOffsetsRhsT[colIdxsArg[j]]++;
+
+      for (size_t col = 0, cumsum = 0; col < numCols; col++) {
+        size_t tmp = rowOffsetsRhsT[col];
+        rowOffsetsRhsT[col] = cumsum;
+        cumsum += tmp;
+      }
+      rowOffsetsRhsT[numCols] = numNonZeros;
+
+      for (size_t row = 0; row < numRows; row++) {
+        for (size_t j = rowOffsetsArg[row]; j < rowOffsetsArg[row + 1]; j++) {
+          size_t col = colIdxsArg[j];
+          size_t dest = rowOffsetsRhsT[col];
+          colIdxsRhsT[dest] = row;
+          valuesRhsT[dest] = valuesArg[j];
+          rowOffsetsRhsT[col]++;
+        }
       }
 
-      delete[] curRowOffsets;
+      for (size_t col = 0, last = 0; col < numCols + 1; col++) {
+        size_t tmp = rowOffsetsRhsT[col];
+        rowOffsetsRhsT[col] = last;
+        last = tmp;
+      }
+      // const size_t numRows = rhs->getNumRows();
+      // const size_t numCols = rhs->getNumCols();
+
+      // CSRMatrix<VT>* rhsT = DataObjectFactory::create<CSRMatrix<VT>>(numCols, numRows, rhs->getNumNonZeros(), false);
+
+      // const VT * valuesArg = rhs->getValues();
+      // const size_t * colIdxsArg = rhs->getColIdxs();
+      // const size_t * rowOffsetsArg = rhs->getRowOffsets();
+
+      // VT * valuesRes = rhsT->getValues();
+      // VT * const valuesResInit = valuesRes;
+      // size_t * colIdxsRes = rhsT->getColIdxs();
+      // size_t * rowOffsetsRes = rhsT->getRowOffsets();
+
+      // auto* curRowOffsets = new size_t[numRows + 1];
+      // memcpy(curRowOffsets, rowOffsetsArg, (numRows + 1) * sizeof(size_t));
+
+      // rowOffsetsRes[0] = 0;
+      // for(size_t c = 0; c < numCols; c++) {
+      //   for(size_t r = 0; r < numRows; r++)
+      //     if(curRowOffsets[r] < rowOffsetsArg[r + 1] && colIdxsArg[curRowOffsets[r]] == c) {
+      //       *valuesRes++ = valuesArg[curRowOffsets[r]];
+      //       *colIdxsRes++ = r;
+      //       curRowOffsets[r]++;
+      //     }
+      //   rowOffsetsRes[c + 1] = valuesRes - valuesResInit;
+      // }
+
+      // delete[] curRowOffsets;
 
       // 3. Compute Matrix Multiplication
       const VT * valuesLhs = lhs->getValues();
