@@ -144,7 +144,7 @@ template <typename VT> struct MatMul<CSRMatrix<VT>, CSRMatrix<VT>,
             throw std::runtime_error("#cols of lhs and #rows of rhs must be the same");
 
         // TODO: Better estimation of the number of non-zeros
-        size_t estimationNumNonZeros = lhs->getNumNonZeros() * rhs->getNumNonZeros();
+        size_t estimationNumNonZeros = lhs->getNumNonZeros() + rhs->getNumNonZeros();
         if (res == nullptr)
             res = DataObjectFactory::create<CSRMatrix<VT>>(nr1, nc2, estimationNumNonZeros, true);
 
