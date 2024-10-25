@@ -20,6 +20,7 @@
 #include <runtime/local/context/DaphneContext.h>
 
 #include <iostream>
+#include <iomanip>
 
 // ****************************************************************************
 // Convenience function
@@ -32,7 +33,7 @@
  */
 template <typename VT> void printSca(VT arg, bool newline, bool err, DCTX(ctx)) {
     std::ostream &os = err ? std::cerr : std::cout;
-    os << arg;
+    os << std::setprecision (16) << arg;
     if (newline)
         os << std::endl;
 }
@@ -40,13 +41,13 @@ template <typename VT> void printSca(VT arg, bool newline, bool err, DCTX(ctx)) 
 // For printing int8_t/uint8_t as numbers as opposed to characters
 template <> void printSca(int8_t arg, bool newline, bool err, DCTX(ctx)) {
     std::ostream &os = err ? std::cerr : std::cout;
-    os << static_cast<int32_t>(arg);
+    os << std::setprecision (16) << static_cast<int32_t>(arg);
     if (newline)
         os << std::endl;
 }
 template <> void printSca(uint8_t arg, bool newline, bool err, DCTX(ctx)) {
     std::ostream &os = err ? std::cerr : std::cout;
-    os << static_cast<uint32_t>(arg);
+    os << std::setprecision (16) << static_cast<uint32_t>(arg);
     if (newline)
         os << std::endl;
 }
